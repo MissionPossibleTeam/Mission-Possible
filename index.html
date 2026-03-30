@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>Mission Possible</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+
+<style>
+body{
+margin:0;
+font-family:'Pacifico', cursive;
+overflow-y:auto;
+transition:0.4s;
+}
+
+/* THEMES */
+.green{background:#e6f7f5;color:#064e3b;}
+.strawberry{background:#ffe4e6;color:#9f1239;}
+.blueberry{background:#e0e7ff;color:#1e3a8a;}
+.lavender{background:#f3e8ff;color:#6b21a8;}
+.bear{background:#fef3c7;color:#92400e;}
+
+/* HEADER */
+h1{
+text-align:center;
+margin:20px;
+}
+
+/* NAV */
+nav{
+text-align:center;
+}
+button{
+margin:8px;
+padding:10px 18px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+}
+
+/* LEFT NOTES PANEL */
+#notesPanel{
+position:fixed;
+left:0;
+top:0;
+height:100%;
+width:200px;
+background:#fffaf0;
+overflow-y:auto;
+padding:10px;
+}
+#notesPanel h3{
+text-align:center;
+}
+.noteItem{
+padding:6px;
+border-bottom:1px solid #ccc;
+cursor:pointer;
+}
+
+/* MAIN */
+#main{
+margin-left:210px;
+padding:20px;
+}
+
+/* TODO */
+#todoBox{
+background:rgba(255,255,255,0.5);
+padding:15px;
+border-radius:12px;
+}
+#todoList div{
+display:flex;
+justify-content:space-between;
+margin:5px;
+}
+
+/* SECTIONS */
+.section{
+display:none;
+margin-top:20px;
+}
+
+/* BACK BUTTON */
+.back{
+margin-top:10px;
+}
+</style>
+</head>
+
+<body class="green">
+
+<!-- SAVED NOTES -->
+<div id="notesPanel">
+<h3>Saved Notes</h3>
+<div id="notesList"></div>
+</div>
+
+<div id="main">
+
+<h1>Mission Possible</h1>
+
+<nav>
+<button onclick="show('home')">Home</button>
+<button onclick="show('notes')">Notes</button>
+<button onclick="show('pomodoro')">Pomodoro</button>
+<button onclick="show('quiz')">Quiz</button>
+<button onclick="show('settings')">Settings</button>
+</nav>
+
+<!-- HOME -->
+<div id="home" class="section" style="display:block;">
+
+<div id="todoBox">
+<h2>To Do List</h2>
+<input id="todoInput" placeholder="Press Enter" onkeydown="addTodo(event)">
+<div id="todoList"></div>
+</div>
+
+</div>
+
+<!-- NOTES -->
+<div id="notes" class="section">
+<input id="noteTitle" placeholder="Title"><br><br>
+<textarea id="noteText" placeholder="Write notes"></textarea><br>
+<button onclick="saveNote()">Save</button>
+<button class="back" onclick="show('home')">⬅ Back</button>
+</div>
+
+<!-- POMODORO -->
+<div id="pomodoro" class="section">
+<input placeholder="Study minutes"><br>
+<input placeholder="Break minutes"><br>
+<input placeholder="Rounds"><br>
+<select>
+<option>No Music</option>
+<option>Lofi</option>
+<option>Rain</option>
+<option>Fire</option>
+</select>
+<button class="back" onclick="show('home')">⬅ Back</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="section">
+<h3>Quiz Mode</h3>
+<button onclick="revision()">Revision</button>
+<button onclick="exam()">Exam</button>
+
+<div id="quizBox"></div>
+
+<button class="back" onclick="show('home')">⬅ Back</button>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="section">
+<h3>Theme</h3>
+<button onclick="setTheme('green')">Green</button>
+<button onclick="setTheme('strawberry')">Strawberry</button>
+<button onclick="setTheme('blueberry')">Blueberry</button>
+<button onclick="setTheme('lavender')">Lavender</button>
+<button onclick="setTheme('bear')">Bear</button>
+
+<h3>Login</h3>
+<input placeholder="Username"><br>
+<input placeholder="Password">
+
+<button class="back" onclick="show('home')">⬅ Back</button>
+</div>
+
+</div>
+
+<script>
+
+/* NAV */
+function show(id){
+document.querySelectorAll('.section').forEach(s=>s.style.display="none");
+document.getElementById(id).style.display="block";
+}
+
+/* TODO */
+let todos=JSON.parse(localStorage.getItem("todos"))||[];
+
+function addTodo(e){
+if(e.key==="Enter"){
+let val=e.target.value;
+if(!val)return;
+todos.push(val);
+localStorage.setItem("todos",JSON.stringify(todos));
+displayTodos();
+e.target.value="";
+}
+}
+
+function displayTodos(){
+let list=document.getElementById("todoList");
+list.innerHTML="";
+todos.forEach((t,i)=>{
+let div=document.createElement("div");
+div.innerHTML=`${t} <button onclick="deleteTodo(${i})">❌</button>`;
+list.appendChild(div);
+});
+}
+
+function deleteTodo(i){
+todos.splice(i,1);
+localStorage.setItem("todos",JSON.stringify(todos));
+displayTodos();
+}
+
+/* NOTES */
+let notes=JSON.parse(localStorage.getItem("notes"))||[];
+
+function saveNote(){
+let t=document.getElementById("noteTitle").value;
+let c=document.getElementById("noteText").value;
+notes.push({t,c});
+localStorage.setItem("notes",JSON.stringify(notes));
+displayNotes();
+}
+
+function displayNotes(){
+let list=document.getElementById("notesList");
+list.innerHTML="";
+notes.forEach(n=>{
+let div=document.createElement("div");
+div.className="noteItem";
+div.innerText=n.t;
+div.onclick=()=>alert(n.c);
+list.appendChild(div);
+});
+}
+
+/* QUIZ */
+function revision(){
+let box=document.getElementById("quizBox");
+box.innerHTML="";
+if(notes.length==0){box.innerText="No notes";return;}
+let n=notes[Math.floor(Math.random()*notes.length)];
+box.innerText="Quick Revise: "+n.c;
+}
+
+function exam(){
+let box=document.getElementById("quizBox");
+box.innerHTML="";
+if(notes.length==0){box.innerText="No notes";return;}
+let n=notes[Math.floor(Math.random()*notes.length)];
+box.innerHTML="Question: Explain<br>"+n.c;
+}
+
+/* THEME */
+function setTheme(t){
+document.body.className=t;
+localStorage.setItem("theme",t);
+}
+
+/* LOAD */
+window.onload=function(){
+displayTodos();
+displayNotes();
+
+let t=localStorage.getItem("theme");
+if(t) document.body.className=t;
+}
+
+</script>
+
+</body>
+</html>
